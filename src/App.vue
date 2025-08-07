@@ -14,53 +14,43 @@ const todos_asc = computed(() =>
   todos.value.slice().sort((a, b) => b.createAt - a.createAt)
 )
 
-const addTodo = async () => {  
+const addTodo = () => {
   if (input_content.value.trim() === '' || input_category.value === null) {
-    return;
+    return
   }
-
-  const content = input_content.value;
-  const category = input_category.value;
-  const dueDate = input_dueDate.value ? new Date(input_dueDate.value).getTime() : null;
-
   todos.value.push({
-    content,
-    category,
+    content: input_content.value,
+    category: input_category.value,
     done: false,
-    createAt: Date.now(),
-    dueDate
-  });
+    createAt: new Date().getTime(),
+  
+    dueDate: input_dueDate.value ? new Date(input_dueDate.value).getTime() : null
+  })
 
   
-  if (Notification.permission !== 'granted') {
-    try {
-      const permission = await Notification.requestPermission();
-      if (permission !== 'granted') return;
-    } catch (err) {
-      console.error("Notification permission request failed", err);
-      return;
-    }
-  }
-
-
-  new Notification("New Task Added!", {
-    body: content,
-    icon: '/icon.png'
-  });
-
-  
-  const newTodo = todos.value[todos.value.length - 1];
-  if (newTodo.dueDate && newTodo.dueDate > Date.now()) {
-    const delay = newTodo.dueDate - Date.now();
-    scheduleNotification(newTodo, delay);
+  if (Notification.permission === 'granted') {
+    new Notification("New Task Added!", {
+      body: input_content.value,
+      icon: '/icon.png'
+    });
+  } else if (Notification.permission !== 'denied') {
+    Notification.requestPermission().then(permission => {
+      if (permission === 'granted') {
+        new Notification("Notifications enabled!");
+      }
+    });
   }
 
   
-  input_content.value = '';
-  input_category.value = null;
-  input_dueDate.value = null;
+  const newTodo = todos.value[todos.value.length - 1]
+  if (newTodo.dueDate) {
+    scheduleNotification(newTodo)
+  }
+
+  input_content.value = ''
+  input_category.value = null
+  input_dueDate.value = null
 }
-
 
 const removeTodo = todo => {
   todos.value = todos.value.filter(t => t !== todo)
