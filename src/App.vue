@@ -14,7 +14,7 @@ const todos_asc = computed(() =>
   todos.value.slice().sort((a, b) => b.createAt - a.createAt)
 )
 
-const addTodo = async () => {
+const addTodo = async () => {  
   if (input_content.value.trim() === '' || input_category.value === null) {
     return;
   }
