@@ -6,7 +6,9 @@ const name  = ref('')
 
 const input_content = ref('')
 const input_category = ref(null)
+
 const input_dueDate = ref(null)
+
 
 const todos_asc = computed(() => 
   todos.value.slice().sort((a, b) => b.createAt - a.createAt)
@@ -16,33 +18,31 @@ const addTodo = () => {
   if (input_content.value.trim() === '' || input_category.value === null) {
     return
   }
-
-  const newTodo = {
+  todos.value.push({
     content: input_content.value,
     category: input_category.value,
     done: false,
     createAt: new Date().getTime(),
+  
     dueDate: input_dueDate.value ? new Date(input_dueDate.value).getTime() : null
-  }
-
-  todos.value.push(newTodo)
+  })
 
   
-  if ('Notification' in window) {
-    if (Notification.permission === 'granted') {
-      showNotification("New Task Added!", input_content.value)
-    } else if (Notification.permission !== 'denied') {
-      Notification.requestPermission().then(permission => {
-        if (permission === 'granted') {
-          showNotification("New Task Added!", input_content.value)
-        }
-      })
-    }
-  } else {
-    alert("Notifications are not supported on this browser.")
+  if (Notification.permission === 'granted') {
+    new Notification("New Task Added!", {
+      body: input_content.value,
+      icon: '/icon.png'
+    });
+  } else if (Notification.permission !== 'denied') {
+    Notification.requestPermission().then(permission => {
+      if (permission === 'granted') {
+        new Notification("Notifications enabled!");
+      }
+    });
   }
 
   
+  const newTodo = todos.value[todos.value.length - 1]
   if (newTodo.dueDate) {
     scheduleNotification(newTodo)
   }
@@ -52,35 +52,28 @@ const addTodo = () => {
   input_dueDate.value = null
 }
 
-const showNotification = (title, body) => {
-  try {
-    new Notification(title, {
-      body: body,
-      icon: '/icon.png'
-    });
-  } catch (e) {
-    alert(body); 
-  }
-}
-
 const removeTodo = todo => {
   todos.value = todos.value.filter(t => t !== todo)
 }
 
-const scheduleNotification = (todo) => {
-  const now = Date.now()
-  const delay = todo.dueDate - now
 
-  if (delay > 0 && 'Notification' in window && Notification.permission === 'granted') {
+const scheduleNotification = (todo) => {
+  const now = Date.now();
+  const delay = todo.dueDate - now;
+
+  if (delay > 0) {
     setTimeout(() => {
-      showNotification("Reminder", `Time to: ${todo.content}`)
-    }, delay)
+      new Notification("Reminder", {
+        body: `Time to: ${todo.content}`           
+      });
+    }, delay);
   }
-}
+};
 
 watch(todos, newVal => {
   localStorage.setItem('todos', JSON.stringify(newVal))
 }, { deep: true })
+
 
 watch(name, newVal => {
   localStorage.setItem('name', newVal)
