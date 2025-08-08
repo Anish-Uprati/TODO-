@@ -141,7 +141,8 @@ onMounted(() => {
           @click="showPicker = !showPicker"
           />
           <div v-if="showPicker">
-          <input type="datetime-local" v-model="dateTime" />
+            <input type="datetime-local" v-model="input_dueDate" />
+
           </div>
         </div>
 
