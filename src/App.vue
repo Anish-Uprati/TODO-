@@ -7,6 +7,9 @@ const name  = ref('')
 const input_content = ref('')
 const input_category = ref(null)
 
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+const showPicker = ref(false)
+
 const input_dueDate = ref(null)
 
 
@@ -14,7 +17,7 @@ const todos_asc = computed(() =>
   todos.value.slice().sort((a, b) => b.createAt - a.createAt)
 )
 
-const addTodo = () => {
+ const addTodo = () => {
   if (input_content.value.trim() === '' || input_category.value === null) {
     return
   }
@@ -131,10 +134,18 @@ onMounted(() => {
         </div>
 
         <h4>Set a due date & time</h4>
-        <input 
-          type="datetime-local" 
-          v-model="input_dueDate"
-        />
+        <div>
+          <font-awesome-icon 
+          icon="calendar-days" 
+          class="fa-icon" 
+          @click="showPicker = !showPicker"
+          />
+          <div v-if="showPicker">
+          <input type="datetime-local" v-model="dateTime" />
+          </div>
+        </div>
+
+
 
         <input type="submit" value="Add todo" />
       </form>
@@ -157,9 +168,11 @@ onMounted(() => {
             <input type="text" v-model="todo.content" />
           </div>
 
-          <div v-if="todo.dueDate" class="due-date">
-            Due: {{ new Date(todo.dueDate).toLocaleString() }}
-          </div>
+           <div v-if="todo.dueDate" class="due-date">
+           
+           Due: {{ new Date(todo.dueDate).toLocaleString() }}
+           </div>
+
           
           <div class="actions">
             <button class="delete" @click="removeTodo(todo)">Delete</button>
