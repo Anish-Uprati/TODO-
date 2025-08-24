@@ -9,11 +9,8 @@ const input_category = ref(null)
 
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 const showPicker = ref(false)
-
 const input_dueDate = ref(null)
 
-
-// ✅ LOGIN SYSTEM
 const isLoggedIn = ref(false)
 const loginEmail = ref('')
 const loginPassword = ref('')
@@ -43,7 +40,6 @@ onMounted(() => {
 })
 
 
-// ✅ TODO APP (your original code, unchanged)
 const todos_asc = computed(() => 
   todos.value.slice().sort((a, b) => b.createAt - a.createAt)
 )
@@ -120,7 +116,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <!-- ✅ LOGIN POPUP -->
+ 
   <div v-if="showLogin" class="login-popup">
     <div class="login-box">
       <h2>Login</h2>
@@ -130,7 +126,7 @@ onMounted(() => {
     </div>
   </div>
 
-  <!-- ✅ APP only shows if logged in -->
+  
   <main v-else class="app">
     <button class="logout" @click="handleLogout">Logout</button>
     <section class="greeting">

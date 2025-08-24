@@ -230,7 +230,7 @@ input:checked ~ .bubble::after {
 	color: var(--grey);
 }
 
-/* ✅ LOGIN POPUP STYLES */
+
 .login-popup {
 	position: fixed;
 	top: 0; left: 0;
@@ -299,7 +299,7 @@ input:checked ~ .bubble::after {
 	transform: translateY(0);
   }
   
-  /* Logout Button */
+
   .logout {
 	margin: 15px;
 	padding: 8px 14px;
@@ -316,7 +316,6 @@ input:checked ~ .bubble::after {
 	background: darkred;
   }
   
-  /* Animations */
   @keyframes fadeIn {
 	from { opacity: 0 }
 	to { opacity: 1 }
