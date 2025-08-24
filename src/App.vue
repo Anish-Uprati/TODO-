@@ -13,6 +13,37 @@ const showPicker = ref(false)
 const input_dueDate = ref(null)
 
 
+// ✅ LOGIN SYSTEM
+const isLoggedIn = ref(false)
+const loginEmail = ref('')
+const loginPassword = ref('')
+const showLogin = ref(true)
+
+const handleLogin = () => {
+  if (loginEmail.value.trim() && loginPassword.value.trim()) {
+    isLoggedIn.value = true
+    showLogin.value = false
+    localStorage.setItem('loggedIn', 'true')
+  } else {
+    alert("Please enter both email and password")
+  }
+}
+
+const handleLogout = () => {
+  isLoggedIn.value = false
+  showLogin.value = true
+  localStorage.removeItem('loggedIn')
+}
+
+onMounted(() => {
+  if (localStorage.getItem('loggedIn') === 'true') {
+    isLoggedIn.value = true
+    showLogin.value = false
+  }
+})
+
+
+// ✅ TODO APP (your original code, unchanged)
 const todos_asc = computed(() => 
   todos.value.slice().sort((a, b) => b.createAt - a.createAt)
 )
@@ -89,7 +120,19 @@ onMounted(() => {
 </script>
 
 <template>
-  <main class="app">
+  <!-- ✅ LOGIN POPUP -->
+  <div v-if="showLogin" class="login-popup">
+    <div class="login-box">
+      <h2>Login</h2>
+      <input type="email" v-model="loginEmail" placeholder="Enter email" />
+      <input type="password" v-model="loginPassword" placeholder="Enter password" />
+      <button @click="handleLogin">Login</button>
+    </div>
+  </div>
+
+  <!-- ✅ APP only shows if logged in -->
+  <main v-else class="app">
+    <button class="logout" @click="handleLogout">Logout</button>
     <section class="greeting">
       <h2 class="title">
         What's up,
@@ -142,12 +185,8 @@ onMounted(() => {
           />
           <div v-if="showPicker">
             <input type="datetime-local" v-model="input_dueDate" />
-
           </div>
         </div>
-
-
-
         <input type="submit" value="Add todo" />
       </form>
     </section>
@@ -170,10 +209,8 @@ onMounted(() => {
           </div>
 
            <div v-if="todo.dueDate" class="due-date">
-           
-           Due: {{ new Date(todo.dueDate).toLocaleString() }}
+             Due: {{ new Date(todo.dueDate).toLocaleString() }}
            </div>
-
           
           <div class="actions">
             <button class="delete" @click="removeTodo(todo)">Delete</button>
