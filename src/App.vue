@@ -2,12 +2,9 @@
   import { ref, onMounted, computed, watch } from 'vue'
   
   const todos = ref([])
-  const name  = ref('')
-  
+  const name = ref('')
   const input_content = ref('')
   const input_category = ref(null)
-  
-  import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
   const showPicker = ref(false)
   const input_dueDate = ref(null)
   
@@ -15,6 +12,9 @@
   const loginEmail = ref('')
   const loginPassword = ref('')
   const showLogin = ref(true)
+  
+  
+  const notificationTimeouts = ref(new Map())
   
   const handleLogin = () => {
     if (loginEmail.value.trim() && loginPassword.value.trim()) {
@@ -30,6 +30,10 @@
     isLoggedIn.value = false
     showLogin.value = true
     localStorage.removeItem('loggedIn')
+    
+  
+    notificationTimeouts.value.forEach(timeoutId => clearTimeout(timeoutId))
+    notificationTimeouts.value.clear()
   }
   
   onMounted(() => {
@@ -37,84 +41,92 @@
       isLoggedIn.value = true
       showLogin.value = false
     }
+    
+    name.value = localStorage.getItem('name') || ''
+    todos.value = JSON.parse(localStorage.getItem('todos')) || []
+    
+    
+    if (Notification.permission === 'default') {
+      Notification.requestPermission()
+    }
   })
-  
   
   const todos_asc = computed(() => 
     todos.value.slice().sort((a, b) => b.createAt - a.createAt)
   )
   
-   const addTodo = () => {
+  const showNotification = (title, body, icon = '/icon.png') => {
+    if (Notification.permission === 'granted') {
+      new Notification(title, { body, icon })
+    }
+  }
+  
+  const addTodo = () => {
     if (input_content.value.trim() === '' || input_category.value === null) {
       return
     }
-    todos.value.push({
+    
+    const newTodo = {
+      id: Date.now(),
       content: input_content.value,
       category: input_category.value,
       done: false,
       createAt: new Date().getTime(),
-    
       dueDate: input_dueDate.value ? new Date(input_dueDate.value).getTime() : null
-    })
-  
-    
-    if (Notification.permission === 'granted') {
-      new Notification("New Task Added!", {
-        body: input_content.value,
-        icon: '/icon.png'
-      });
-    } else if (Notification.permission !== 'denied') {
-      Notification.requestPermission().then(permission => {
-        if (permission === 'granted') {
-          new Notification("Notifications enabled!");
-        }
-      });
     }
-  
     
-    const newTodo = todos.value[todos.value.length - 1]
+    todos.value.push(newTodo)
+    
+    
+    showNotification("New Task Added!", newTodo.content)
+    
+    
     if (newTodo.dueDate) {
-      scheduleNotification(newTodo)
+      const delay = newTodo.dueDate - Date.now()
+      if (delay > 0) {
+        const timeoutId = setTimeout(() => {
+          showNotification("Task Due!", `Time to: ${newTodo.content}`)
+          notificationTimeouts.value.delete(newTodo.id)
+        }, delay)
+        notificationTimeouts.value.set(newTodo.id, timeoutId)
+      }
     }
-  
+    
     input_content.value = ''
     input_category.value = null
     input_dueDate.value = null
   }
   
   const removeTodo = todo => {
-    todos.value = todos.value.filter(t => t !== todo)
+    
+    if (notificationTimeouts.value.has(todo.id)) {
+      clearTimeout(notificationTimeouts.value.get(todo.id))
+      notificationTimeouts.value.delete(todo.id)
+    }
+    
+    todos.value = todos.value.filter(t => t.id !== todo.id)
   }
   
   
-  const scheduleNotification = (todo) => {
-    const now = Date.now();
-    const delay = todo.dueDate - now;
-  
-    if (delay > 0) {
-      setTimeout(() => {
-        new Notification("Reminder", {
-          body: `Time to: ${todo.content}`           
-        });
-      }, delay);
-    }
-  };
-  
-  watch(todos, newVal => {
-    localStorage.setItem('todos', JSON.stringify(newVal))
+  watch(todos, (newTodos) => {
+    localStorage.setItem('todos', JSON.stringify(newTodos))
+    
+    
+    const currentIds = new Set(newTodos.map(t => t.id))
+    notificationTimeouts.value.forEach((timeoutId, id) => {
+      if (!currentIds.has(id)) {
+        clearTimeout(timeoutId)
+        notificationTimeouts.value.delete(id)
+      }
+    })
   }, { deep: true })
-  
   
   watch(name, newVal => {
     localStorage.setItem('name', newVal)
   })
-  
-  onMounted(() => {
-    name.value = localStorage.getItem('name') || ''
-    todos.value = JSON.parse(localStorage.getItem('todos')) || []
-  })
-  </script>
-  
+</script>
+
+
   <template>
    
     <div v-if="showLogin" class="login-popup">
