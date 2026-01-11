@@ -13,7 +13,6 @@
   const loginPassword = ref('')
   const showLogin = ref(true)
   
-  
   const notificationTimeouts = ref(new Map())
   
   const handleLogin = () => {
@@ -31,7 +30,6 @@
     showLogin.value = true
     localStorage.removeItem('loggedIn')
     
-  
     notificationTimeouts.value.forEach(timeoutId => clearTimeout(timeoutId))
     notificationTimeouts.value.clear()
   }
@@ -45,7 +43,6 @@
     name.value = localStorage.getItem('name') || ''
     todos.value = JSON.parse(localStorage.getItem('todos')) || []
     
-    
     if (Notification.permission === 'default') {
       Notification.requestPermission()
     }
@@ -55,9 +52,9 @@
     todos.value.slice().sort((a, b) => b.createAt - a.createAt)
   )
   
-  const showNotification = (title, body, icon = '/icon.png') => {
+  const showNotification = (title, body) => {
     if (Notification.permission === 'granted') {
-      new Notification(title, { body, icon })
+      new Notification(title, { body })
     }
   }
   
@@ -77,9 +74,7 @@
     
     todos.value.push(newTodo)
     
-    
     showNotification("New Task Added!", newTodo.content)
-    
     
     if (newTodo.dueDate) {
       const delay = newTodo.dueDate - Date.now()
@@ -107,10 +102,8 @@
     todos.value = todos.value.filter(t => t.id !== todo.id)
   }
   
-  
   watch(todos, (newTodos) => {
     localStorage.setItem('todos', JSON.stringify(newTodos))
-    
     
     const currentIds = new Set(newTodos.map(t => t.id))
     notificationTimeouts.value.forEach((timeoutId, id) => {
@@ -125,6 +118,7 @@
     localStorage.setItem('name', newVal)
   })
 </script>
+
 
 
   <template>
